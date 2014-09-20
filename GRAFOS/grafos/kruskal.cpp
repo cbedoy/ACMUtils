@@ -1,67 +1,94 @@
-
+#include <stdio.h>
 #include <algorithm>
-#include <cfloat>
-#include <cmath>
-#include <cstdlib>
-#include <iostream>
-#include <iomanip>
-#include <list>
-#include <map>
-#include <queue>
-#include <set>
-#include <sstream>
-#include <string>
-#include <utility>
-#include <vector>
+#include <cstring>
 
-#define X first
-#define Y second
-#define LI long long
-#define MP make_pair
-#define PB push_back
-#define SZ size()
-#define SQ(a) ((a)*(a))
-#define MAX(a,b) ((a)>(b)?(a):(b))
-#define MIN(a,b) ((a)<(b)?(a):(b))
+#define MAX 1005  //maximo numero de vértices
 
-using namespace std;
+///UNION-FIND
+int padre[ MAX ]; //Este arreglo contiene el padre del i-esimo nodo
 
-typedef vector<pair<int,pair<int,int> > > V;
-
-int N, mf[2000]; // numero de nodos N <= 2000
-V v;             // lista de aristas (coste, (nodo1, nodo2))
-
-int find(int n) { // conjunto conexo de n
-  if (mf[n] == n) return n;
-  else return mf[n] = find(mf[n]);
+//Método de inicialización
+void MakeSet( int n ){
+    for( int i = 1 ; i <= n ; ++i ) padre[ i ] = i;
 }
 
-int kruskal() {
-  int a, b, sum = 0;
-  sort(v.begin(), v.end());
-  for (int i = 0; i < N; i++)
-    mf[i] = i; // inicializar conjuntos conexos
+//Método para encontrar la raiz del vértice actual X
+int Find( int x ){
+    return ( x == padre[ x ] ) ? x : padre[ x ] = Find( padre[ x ] );
+}
 
-  for (int i = 0; i < (int)v.SZ; i++) {
-    a = find(v[i].Y.X), b = find(v[i].Y.Y);
-    if (a != b) { // si conjuntos son diferentes
-      mf[b] = a;  // unificar los conjuntos
-      sum += v[i].X; // agregar coste de arista
+//Método para unir 2 componentes conexas
+void Union( int x , int y ){
+    padre[ Find( x ) ] = Find( y );
+}
+
+//Método que me determina si 2 vértices estan o no en la misma componente conexa
+bool sameComponent( int x , int y ){
+    if( Find( x ) == Find( y ) ) return true;
+    return false;
+}
+///FIN UNION-FIND
+
+int V , E;      //numero de vertices y aristas
+//Estructura arista( edge )
+struct Edge{
+    int origen;     //Vértice origen
+    int destino;    //Vértice destino
+    int peso;       //Peso entre el vértice origen y destino
+    Edge(){}
+    //Comparador por peso, me servira al momento de ordenar lo realizara en orden ascendente
+    //Cambiar signo a > para obtener el arbol de expansion maxima
+    bool operator<( const Edge &e ) const {
+        return peso < e.peso;
     }
-  }
-  return sum;
+}arista[ MAX ];      //Arreglo de aristas para el uso en kruskal
+Edge MST[ MAX ];     //Arreglo de aristas del MST encontrado
+
+void Kruskal(){
+    int origen , destino , peso;
+    int total = 0;          //Peso total del MST
+    int numAristas = 0;     //Numero de Aristas del MST
+
+    MakeSet( V );           //Inicializamos cada componente
+    std::sort( arista , arista + E );    //Ordenamos las aristas por su comparador
+
+    for( int i = 0 ; i < E ; ++i ){     //Recorremos las aristas ya ordenadas por peso
+        origen = arista[ i ].origen;    //Vértice origen de la arista actual
+        destino = arista[ i ].destino;  //Vértice destino de la arista actual
+        peso = arista[ i ].peso;        //Peso de la arista actual
+
+        //Verificamos si estan o no en la misma componente conexa
+        if( !sameComponent( origen , destino ) ){  //Evito ciclos
+            total += peso;              //Incremento el peso total del MST
+            MST[ numAristas++ ] = arista[ i ];  //Agrego al MST la arista actual
+            Union( origen , destino );  //Union de ambas componentes en una sola
+        }
+    }
+
+    //Si el MST encontrado no posee todos los vértices mostramos mensaje de error
+    //Para saber si contiene o no todos los vértices basta con que el numero
+    //de aristas sea igual al numero de vertices - 1
+    if( V - 1 != numAristas ){
+        puts("No existe MST valido para el grafo ingresado, el grafo debe ser conexo.");
+        return;
+    }
+    puts( "-----El MST encontrado contiene las siguientes aristas-----");
+    for( int i = 0 ; i < numAristas ; ++i )
+        printf("( %d , %d ) : %d\n" , MST[ i ].origen , MST[ i ].destino , MST[ i ].peso ); //( vertice u , vertice v ) : peso
+
+    printf( "El costo minimo de todas las aristas del MST es : %d\n" , total );
 }
 
-int main() {
-  N = 5;               // solucion 13:
-                       // (0,3),(1,2),(2,3),(3,4)
-  v.PB(MP(4,MP(0,1))); // arista (0,1) coste 4
-  v.PB(MP(4,MP(0,2))); // arista (0,2) coste 4
-  v.PB(MP(3,MP(0,3))); // arista (0,3) coste 3
-  v.PB(MP(6,MP(0,4))); // arista (0,4) coste 6
-  v.PB(MP(3,MP(1,2))); // arista (1,2) coste 3
-  v.PB(MP(7,MP(1,4))); // arista (1,4) coste 7
-  v.PB(MP(2,MP(2,3))); // arista (2,3) coste 2
-  v.PB(MP(5,MP(3,4))); // arista (3,4) coste 5
-  cout << kruskal() << endl;
+int main(){
+    int mst;
+
+    scanf("%d" , &V  );
+    E = 2;
+    //Realizamos el ingreso del grafo, almacenando las aristas en un arreglo con los datos respectivos
+    for( int i = 0 ; i < E ; ++i )
+        scanf("%d %d %d" , &arista[ i ].origen , &arista[ i ].destino , &arista[ i ].peso );
+
+    Kruskal();
+
+    return 0;
 }

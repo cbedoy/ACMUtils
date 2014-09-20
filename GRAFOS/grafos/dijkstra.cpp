@@ -58,7 +58,7 @@ V dijkstra(int s, int t) {
 }
 
 int main() {
-  N = 6;             // solucion 0-1-2-4-3-5, coste 11
+  /*N = 6;             // solucion 0-1-2-4-3-5, coste 11
   A[0].PB(MP(2, 1)); // arista (0, 1) con coste 2
   A[0].PB(MP(5, 2)); // arista (0, 2) con coste 5
   A[1].PB(MP(2, 2)); // arista (1, 2) con coste 2
@@ -67,6 +67,13 @@ int main() {
   A[3].PB(MP(3, 5)); // arista (3, 5) con coste 3
   A[4].PB(MP(2, 3)); // arista (4, 3) con coste 2
   A[4].PB(MP(8, 5)); // arista (4, 5) con coste 8
-  cout << dijkstra(0, 5) << endl;
+  cout << dijkstra(0, 5) << endl;*/
+  int M, x, y, a, b, c;
+  cin>>N>>M>>x>>y;
+  for(int i=0; i<M; i++){
+    cin>>a>>b>>c;
+    A[a].PB(MP(c, b));
+  }
+  cout<<dijkstra(x, y)<<endl;
 }
 
